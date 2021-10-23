@@ -1,0 +1,49 @@
+bits 32 
+
+global start 
+       
+extern exit, fopen, fread, fclose, printf, scanf, strtok, strlen
+import strlen msvcrt.dll
+import strtok msvcrt.dll
+import exit msvcrt.dll  
+import fopen msvcrt.dll  
+import fread msvcrt.dll
+import fclose msvcrt.dll
+import printf msvcrt.dll  
+import scanf msvcrt.dll
+extern exit               
+import exit msvcrt.dll   
+ 
+segment data use32 class=data
+sir db "Ana are mere"
+delimiter db ' ', 0
+format db '%s', 10,13,0
+
+segment code use32 class=code
+    start:
+        mov ecx, 3
+        
+        push dword delimiter
+        push dword sir
+        call [strtok]      ;eax <- "Ana"
+        add esp, 4 * 2
+        
+        repeta:
+        cmp eax, 0
+        je final
+        
+        push dword eax
+        push dword format
+        call [printf]
+        add esp, 4 * 2
+        
+        push dword delimiter
+        push dword 0
+        call [strtok]      ;eax <- "Ana"
+        add esp, 4 * 2
+        
+        jmp repeta
+        
+        final:
+        push    dword 0      
+        call [exit]

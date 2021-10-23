@@ -1,0 +1,99 @@
+     1                                  bits 32 
+     2                                  
+     3                                  
+     4                                  global start        
+     5                                  
+     6                                  
+     7                                  extern exit, fopen, fclose, printf, fread, fprintf,scanf,gets,strtok,fgets
+     8                                  import exit msvcrt.dll     
+     9                                  import fopen msvcrt.dll
+    10                                  import fclose msvcrt.dll
+    11                                  import printf msvcrt.dll
+    12                                  import fread msvcrt.dll
+    13                                  import fprintf msvcrt.dll
+    14                                  import scanf msvcrt.dll
+    15                                  import gets msvcrt.dll
+    16                                  import strtok msvcrt.dll
+    17                                  import fgets msvcrt.dll
+    18                                  
+    19                                  segment data use32 class=data
+    20                                  
+    21                                      len equ 100
+    22 00000000 <res 00000064>              nume_fisier resb 100
+    23 00000064 7200                        mod_acces db "r", 0
+    24 00000066 <res 00000064>              text_fisier resb len
+    25 000000CA FF                          file_descriptor db -1
+    26 000000CB 04000000                    divisor dd 4
+    27 000000CF <res 00000032>              cuvant resb 50
+    28 00000101 2000000000000000            delimitator dd ' ', 0
+    29 00000109 00000000                    contor dd 0
+    30 0000010D 00000000                    auxiliar dd 0
+    31                                      
+    32 00000111 25730A00                    format db "%s",10,0
+    33                                      
+    34                                      
+    35                                  segment code use32 class=code
+    36                                      start:
+    37                                      
+    38 00000000 68[00000000]                push dword nume_fisier
+    39 00000005 FF15[00000000]              call [gets]
+    40 0000000B 83C404                      add esp, 4
+    41                                      
+    42 0000000E 68[64000000]                push dword mod_acces
+    43 00000013 68[00000000]                push dword nume_fisier
+    44 00000018 FF15[00000000]              call [fopen]
+    45 0000001E 83C408                      add esp, 8
+    46                                      
+    47 00000021 A3[CA000000]                mov [file_descriptor], eax
+    48                                      
+    49                                      
+    50 00000026 83F800                      cmp eax, 0
+    51 00000029 7475                        je final_program
+    52                                      
+    53 0000002B FF35[CA000000]              push dword[file_descriptor]
+    54 00000031 6A64                        push dword len
+    55 00000033 68[66000000]                push dword text_fisier
+    56 00000038 FF15[00000000]              call [fgets]
+    57 0000003E 83C40C                      add esp, 12
+    58                                      
+    59 00000041 68[01010000]                push dword delimitator
+    60 00000046 68[66000000]                push text_fisier
+    61 0000004B FF15[00000000]              call [strtok]
+    62 00000051 83C408                      add esp, 8
+    63                                      
+    64                                      
+    65                                      bucla:
+    66                                      
+    67 00000054 FF05[09010000]              inc dword[contor]
+    68 0000005A 83F800                      cmp eax, 0
+    69 0000005D 7441                        je final_program
+    70 0000005F A3[0D010000]                mov dword [auxiliar], eax
+    71 00000064 A1[09010000]                mov eax, dword[contor]
+    72 00000069 BA00000000                  mov edx, 0
+    73 0000006E BB04000000                  mov ebx, 4
+    74 00000073 F7F3                        div ebx
+    75 00000075 83FA00                      cmp edx, 0
+    76                                      
+    77 00000078 7514                        jne not_print
+    78 0000007A A1[0D010000]                mov eax, dword[auxiliar]
+    79                                      
+    80 0000007F 50                          push dword eax
+    81 00000080 68[11010000]                push dword format
+    82 00000085 FF15[00000000]              call [printf]
+    83 0000008B 83C408                      add esp, 4 * 2
+    84                                      
+    85                                      not_print
+    85          ******************       warning: label alone on a line without a colon might be in error [-w+orphan-labels]
+    86 0000008E 68[01010000]                push dword delimitator
+    87 00000093 6A00                        push dword 0
+    88 00000095 FF15[00000000]              call [strtok]
+    89 0000009B 83C408                      add esp, 8
+    90                                      
+    91 0000009E EBB4                        jmp bucla
+    92                                      
+    93                                      final_program:
+    94                                  
+    95                                  
+    96                                          ; exit(0)
+    97 000000A0 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    98 000000A2 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

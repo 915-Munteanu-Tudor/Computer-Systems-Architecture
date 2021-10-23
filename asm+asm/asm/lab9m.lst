@@ -1,0 +1,38 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  global afish 
+     4                                  extern printf
+     5                                  import printf msvcrt.dll
+     6                                  
+     7                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     8                                  
+     9                                  segment data use32 class=data public 
+    10                                     
+    11 00000000 257800                      format  db "%x", 0 
+    12 00000003 256400                      formatdec db "%d", 0
+    13 00000006 257500                      formatuns db "%u", 0
+    14                                      
+    15                                    
+    16                                  segment code use32 class=code public 
+    17                                     afish:
+    18 00000000 8B5C2404                        mov ebx, [esp+4]
+    19 00000004 8B442408                        mov eax, [esp+8]
+    20                                          
+    21 00000008 83FB01                          cmp ebx, dword 1
+    22 0000000B 7511                            jne unsigned
+    23                                          
+    24 0000000D 50                              push eax 
+    25 0000000E 68[03000000]                    push dword formatdec
+    26 00000013 FF15[00000000]                  call [printf]
+    27 00000019 83C408                          add esp, 4*2
+    28 0000001C EB0F                            jmp over_unsigned
+    29                                          
+    30                                          unsigned:
+    31 0000001E 50                              push eax 
+    32 0000001F 68[06000000]                    push dword formatuns
+    33 00000024 FF15[00000000]                  call [printf]
+    34 0000002A 83C408                          add esp, 4*2
+    35                                          
+    36                                          over_unsigned
+    36          ******************       warning: label alone on a line without a colon might be in error [-w+orphan-labels]
+    37 0000002D C20400                          ret 4
