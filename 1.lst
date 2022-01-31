@@ -1,0 +1,87 @@
+     1                                  bits 32 
+     2                                  
+     3                                  global start        
+     4                                  
+     5                                  extern exit, fopen, fclose, printf, fread, fprintf, scanf, fgets
+     6                                  import exit msvcrt.dll     
+     7                                  import fopen msvcrt.dll
+     8                                  import fclose msvcrt.dll
+     9                                  import printf msvcrt.dll
+    10                                  import scanf msvcrt.dll
+    11                                  import fread msvcrt.dll
+    12                                  import fprintf msvcrt.dll
+    13                                  import fgets msvcrt.dll 
+    14                                  
+    15                                  segment data use32 class=data
+    16 00000000 <res 00000032>              nume_fisier resb 50
+    17 00000032 10000000                    divizor16 dd 10h
+    18 00000036 02                          divizor2 db 2
+    19 00000037 257300                      format_read db "%s", 0
+    20 0000003A 255800                      format_print db "%X", 0
+    21 0000003D 25582000                    format_write db "%X ", 0
+    22 00000041 7700                        mode db "w", 0
+    23 00000043 FFFFFFFF                    file_descriptor dd -1
+    24 00000047 FFFFFFFF                    rest_of_digits dd -1
+    25                                  
+    26                                  segment code use32 class=code
+    27                                      start:
+    28                                          
+    29                                          ; citim numele fisierului de la tastatura
+    30 00000000 68[00000000]                    push nume_fisier
+    31 00000005 68[37000000]                    push format_read
+    32 0000000A FF15[00000000]                  call[scanf]
+    33 00000010 83C408                          add esp, 8
+    34                                          
+    35                                          ; deschidem fisierul citit de la tastatura
+    36                                  
+    37 00000013 68[41000000]                    push mode
+    38 00000018 68[00000000]                    push nume_fisier
+    39 0000001D FF15[00000000]                  call[fopen]
+    40 00000023 83C408                          add esp, 8
+    41                                          ; if eax = 0 -> error
+    42 00000026 83F800                          cmp eax, 0
+    43 00000029 745F                            je error_fopen
+    44 0000002B A3[43000000]                    mov [file_descriptor], eax
+    45                                          
+    46                                          ; printam descriptorul de fisier in baza 16
+    47 00000030 FF35[43000000]                  push dword [file_descriptor]
+    48 00000036 68[3A000000]                    push format_print
+    49 0000003B FF15[00000000]                  call [printf]
+    50 00000041 83C408                          add esp, 8
+    51                                          
+    52 00000044 A1[43000000]                    mov eax, dword[file_descriptor]
+    53 00000049 B908000000                      mov ecx, 8
+    54                                          digits:
+    55                                              ; parcurgem cifra cu cifra file_descriptor-ul
+    56 0000004E BA00000000                          mov edx, 0          ; in edx:eax avem file_descriptorul
+    57 00000053 F735[32000000]                      div dword[divizor16]  ; eax = cat = restul cifrelor din descriptor, edx = rest = ultima cifra din descriptor
+    58 00000059 A3[47000000]                        mov [rest_of_digits], eax   ; salvam restul de cifre in eax, pt ca il vom folosi mai departe in impartire
+    59                                              
+    60                                              ; verificam daca edx e cifra para sau impara
+    61                                              ; fiind numai o cifra in edx, butem lua numai un word din el (ax=dx) si sa il impartim la un byte (divizor2)
+    62 0000005E 6689D0                              mov ax, dx
+    63 00000061 F635[36000000]                      div byte[divizor2]
+    64 00000067 80FC00                              cmp AH, byte 0
+    65 0000006A 7517                                jne not_even
+    66                                                  ; punem cifra in fisier
+    67 0000006C 51                                      push ECX
+    68 0000006D 52                                      push EDX
+    69 0000006E 68[3A000000]                            push format_print
+    70 00000073 FF35[43000000]                          push dword [file_descriptor]
+    71 00000079 FF15[00000000]                          call [fprintf]
+    72 0000007F 83C40C                                  add esp, 12
+    73 00000082 59                                      pop ecx
+    74                                                  
+    75                                                  not_even:
+    76 00000083 A1[47000000]                            mov eax, dword [rest_of_digits]
+    77                                              ;avem nev de un loop pt a parcurge toate cifrele. vor fi 8 cifre, deci ecx = 8
+    78 00000088 E2C4                            loop digits
+    79                                  
+    80                                          error_fopen:
+    81                                          
+    82 0000008A FF35[43000000]                  push dword [file_descriptor]
+    83 00000090 FF15[00000000]                  call [fclose]
+    84 00000096 83C404                          add esp, 4
+    85                                          
+    86 00000099 6A00                            push    dword 0      
+    87 0000009B FF15[00000000]                  call    [exit]       
